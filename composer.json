@@ -1,6 +1,6 @@
 {
-    "name": "nmred/kafka-php",
-    "description": "Kafka client for php",
+    "name": "photonsdk/kafka-php-fpm",
+    "description": "Kafka client for php-fpm",
     "type": "library",
     "keywords": [
         "Client",
