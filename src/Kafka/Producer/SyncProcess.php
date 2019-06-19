@@ -116,12 +116,20 @@ class SyncProcess
             if ($socket) {
                 $params = array();
                 $this->debug('Start sync metadata request params:' . json_encode($params));
-                $requestData = \Kafka\Protocol::encode(\Kafka\Protocol::METADATA_REQUEST, $params);
-                $socket->write($requestData);
-                $dataLen = \Kafka\Protocol\Protocol::unpack(\Kafka\Protocol\Protocol::BIT_B32, $socket->read(4));
-                $data = $socket->read($dataLen);
-                $correlationId = \Kafka\Protocol\Protocol::unpack(\Kafka\Protocol\Protocol::BIT_B32, substr($data, 0, 4));
-                $result = \Kafka\Protocol::decode(\Kafka\Protocol::METADATA_REQUEST, substr($data, 4));
+
+                $yac = new \Yac();
+                $result = json_decode($yac->get("kafka_topics_brokers"), true);
+                if (!is_array($result)) {
+
+                    $requestData = \Kafka\Protocol::encode(\Kafka\Protocol::METADATA_REQUEST, $params);
+                    $socket->write($requestData);
+                    $dataLen = \Kafka\Protocol\Protocol::unpack(\Kafka\Protocol\Protocol::BIT_B32, $socket->read(4));
+                    $data = $socket->read($dataLen);
+                    $correlationId = \Kafka\Protocol\Protocol::unpack(\Kafka\Protocol\Protocol::BIT_B32, substr($data, 0, 4));
+                    $result = \Kafka\Protocol::decode(\Kafka\Protocol::METADATA_REQUEST, substr($data, 4));
+
+                    $yac->set("kafka_topics_brokers", json_encode($result), 5);
+                }
                 if (!isset($result['brokers']) || !isset($result['topics'])) {
                     throw new \Kafka\Exception('Get metadata is fail, brokers or topics is null.');
                 } else {
